@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<title>Hw 1</title>
+<style>
+#info {
+  position: absolute;
+  top: 0px;
+  width: 100%;
+  padding: 10px;
+  text-align: center;
+  color: #ffff00
+}
+body {
+	background-color: #FDF5E6;
+	color: #000;
+}
+a {
+	color: #08f;
+}
+.button {
+	background-color: #e7e7e7;
+	border: none;
+	color: black;
+	padding: 8px;
+	text-align: center;
+	text-decoration: none;
+	display: inline-block;
+	font-size: 14px;
+}
+</style>
+
+</head>
+<body>
+
+<div id="info" >
+	<input name="toggle" class="button" type="submit" id="toggle" value="Turn" style="width:10%" />
+	<input name="reset" class="button" type="submit" id="reset" value="Reset" style="width:10%" />
+	<input name="switch" class="button" type="submit" id="switch" value="Analog" style="width:10%" />
+</div>
+
+<script src="https://code.jquery.com/jquery-2.1.4.min.js"></script>
+<script src="https://threejs.org/build/three.min.js"></script>
+<script src="https://threejs.org/examples/js/controls/OrbitControls.js"></script>
+	
+<script>
+var camera, scene, renderer;
+var clockFace, analog, quartz, sector, group1, group2, group3;
+var angle1 = 0, angle2 = 0, angle3 = 0;  // initialization IMPORTANT!
+let turn = false;
+var clock = new THREE.Clock();
+var elapsed;
+var cumulate = 0;
+var nextCumulate;
+
+$("#toggle").click(function () {
+	turn = !turn;
+	if (turn === false) {
+		$("#toggle")[0].value = "Turn";
+		clock.stop();
+		nextCumulate = cumulate + elapsed;
+	}
+	else {
+		$("#toggle")[0].value = "Stop";
+		cumulate = nextCumulate;
+		clock.start();
+	}
+});
+
+$("#switch").click(function () {
+	if ($("#switch")[0].value == "Analog") {
+		analog.material.visible = false;
+		quartz.material.visible = true;
+		type = 2;
+		$("#switch")[0].value = "Quartz";
+	}
+	else if ($("#switch")[0].value == "Quartz") {
+		quartz.material.visible = false;
+		clockFace.material.visible = false;
+		sector.material.visible = true;
+		type = 3;
+		$("#switch")[0].value = "Sector";
+	}
+	else if ($("#switch")[0].value == "Sector") {
+		sector.material.visible = false;
+		clockFace.material.visible = true;
+		analog.material.visible = true;
+		type = 1;
+		$("#switch")[0].value = "Analog";
+	}
+});
+
+$("#reset").click(function () {
+	angle1 = 0;
+	angle2 = 0;
+	angle3 = 0;
+});
+
+var type = 1;
+	
+init();
+animate1();
+animate2();
+animate3();
+	
+function init() {
+	
+		
+	scene = new THREE.Scene();
+	scene.background = new THREE.Color( 0xFDF5E6 );
+	camera = new THREE.PerspectiveCamera( 30,window.innerWidth / window.innerHeight, 1, 10000 );
+	camera.position.set( 0, 0, 40 );
+	camera.lookAt(new THREE.Vector3(0, 0, 0));
+	renderer = new THREE.WebGLRenderer();
+	renderer.setSize(window.innerWidth, window.innerHeight);
+	document.body.appendChild(renderer.domElement);
+	window.addEventListener( 'resize', onWindowResize, false );
+	///////////////////////////////////////////////////////////////////
+	var clockGeometry = new THREE.CylinderBufferGeometry(6, 6, 0.1, 500);
+	var clockMaterial = new THREE.MeshBasicMaterial({ color: 0xE6C3C3});
+	clockFace = new THREE.Mesh(clockGeometry, clockMaterial);
+	clockFace.rotation.x = Math.PI / 2;
+
+	scene.add(clockFace);
+
+	// analog
+	var geometry = new THREE.BoxGeometry(0.2, 4, 0.2);
+	var material = new THREE.MeshBasicMaterial({ color: '#FFFFFF' });
+	analog = new THREE.Mesh(geometry, material);
+	analog.position.set(0, 2, 2);
+	group1 = new THREE.Group();
+	group1.add(analog);
+	scene.add(group1);
+
+	// quartz
+	var geometry = new THREE.BoxGeometry(0.2, 4, 0.2);
+	var material = new THREE.MeshBasicMaterial({ color: '#FFFFFF' });
+	quartz = new THREE.Mesh(geometry, material);
+	quartz.position.set(0, 2, 2);
+	quartz.material.visible = false;
+	group2 = new THREE.Group();
+	group2.add(quartz);
+	scene.add(group2);
+
+	// sector
+	var geometry = new THREE.CylinderBufferGeometry(6, 6, 0.5, 500, 1, false, 0, 0);
+	var material = new THREE.MeshBasicMaterial({ color: 0xE6C3C3 });
+	sector = new THREE.Mesh(geometry, material);
+	sector.rotation.x = Math.PI / 2;
+	sector.rotation.y = Math.PI;
+	sector.updateMatrix();
+	sector.material.visible = false;
+	scene.add(sector);
+
+}
+	
+function onWindowResize() {
+	camera.aspect = window.innerWidth / window.innerHeight;
+	camera.updateProjectionMatrix();
+	renderer.setSize(window.innerWidth, window.innerHeight);
+}
+
+function animate1() {
+	group1.rotation.z = angle1;
+	if (turn == true)
+		angle1 -= Math.PI * 2 / 60 / 60;
+
+	requestAnimationFrame(animate1);
+	renderer.render( scene, camera );
+}
+
+function animate2() {
+	group2.rotation.z = angle2;
+	elapsed = clock.getElapsedTime();
+	if (turn == true) {
+		angle2 -= (2 * Math.PI / 60);
+	}
+
+	setTimeout(function () {
+		requestAnimationFrame(animate2);
+	}, 1000);
+
+	renderer.render( scene, camera );
+}
+
+function animate3() {
+	//sector.thetaLength += angle3;
+	sector.geometry.dispose();
+	var progressGeo = new THREE.CylinderBufferGeometry(6, 6, 0.5, 32, 1, false, 0, angle3);
+	sector.geometry = progressGeo;
+	sector.updateMatrix();
+
+	if (turn == true)
+		angle3 -= Math.PI * 2 / 60 / 60;
+
+	requestAnimationFrame(animate3);
+	renderer.render( scene, camera );
+}
+
+
+</script>
+	
+</body>
+
+</html>
