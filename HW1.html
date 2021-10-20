@@ -28,6 +28,12 @@ a {
 	display: inline-block;
 	font-size: 14px;
 }
+
+#heading {
+		text-align: center;
+		position: absolute;
+		width: 100vw;
+}
 </style>
 
 </head>
@@ -35,8 +41,13 @@ a {
 
 <div id="info" >
 	<input name="toggle" class="button" type="submit" id="toggle" value="Turn" style="width:10%" />
+	<input name="count" class="button" type="submit" id="count" value="+10sec" style="width:10%" />
 	<input name="reset" class="button" type="submit" id="reset" value="Reset" style="width:10%" />
 	<input name="switch" class="button" type="submit" id="switch" value="Analog" style="width:10%" />
+</div>
+<div id="heading">
+	<p></p>
+	<h3 style="color: red"><p id="time"></p></h3>
 </div>
 
 <script src="https://code.jquery.com/jquery-2.1.4.min.js"></script>
@@ -47,7 +58,7 @@ a {
 var camera, scene, renderer;
 var clockFace, analog, quartz, sector, group1, group2, group3;
 var angle1 = 0, angle2 = 0, angle3 = 0;  // initialization IMPORTANT!
-let turn = false;
+let turn = false,count = 0;
 var clock = new THREE.Clock();
 var elapsed;
 var cumulate = 0;
@@ -55,7 +66,7 @@ var nextCumulate;
 
 $("#toggle").click(function () {
 	turn = !turn;
-	if (turn === false) {
+	if (turn == false) {
 		$("#toggle")[0].value = "Turn";
 		clock.stop();
 		nextCumulate = cumulate + elapsed;
@@ -64,6 +75,14 @@ $("#toggle").click(function () {
 		$("#toggle")[0].value = "Stop";
 		cumulate = nextCumulate;
 		clock.start();
+	}
+});
+$("#count").click(function () {
+	if (count < 6) {
+		angle1 -= 10 * 6 / 180 * Math.PI;
+		angle2 -= 10 * 6 / 180 * Math.PI;
+		angle3 -= 10 * 6 / 180 * Math.PI;
+		count++;
 	}
 });
 
@@ -94,6 +113,7 @@ $("#reset").click(function () {
 	angle1 = 0;
 	angle2 = 0;
 	angle3 = 0;
+	count = 0;
 });
 
 var type = 1;
@@ -162,8 +182,16 @@ function onWindowResize() {
 
 function animate1() {
 	group1.rotation.z = angle1;
+	
 	if (turn == true)
-		angle1 -= Math.PI * 2 / 60 / 60;
+		angle1 += Math.PI * 2 / 60 / 60;
+	
+	if(angle1 >= 0){
+		turn = false;
+	}
+		
+		
+	console.log(angle1);
 
 	requestAnimationFrame(animate1);
 	renderer.render( scene, camera );
@@ -173,9 +201,13 @@ function animate2() {
 	group2.rotation.z = angle2;
 	elapsed = clock.getElapsedTime();
 	if (turn == true) {
-		angle2 -= (2 * Math.PI / 60);
+		angle2 += (2 * Math.PI / 60);
 	}
-
+	
+	if(angle2 >= 0){
+		turn = false;
+	}
+		
 	setTimeout(function () {
 		requestAnimationFrame(animate2);
 	}, 1000);
@@ -189,9 +221,15 @@ function animate3() {
 	var progressGeo = new THREE.CylinderBufferGeometry(6, 6, 0.5, 32, 1, false, 0, angle3);
 	sector.geometry = progressGeo;
 	sector.updateMatrix();
+	
+	
 
 	if (turn == true)
-		angle3 -= Math.PI * 2 / 60 / 60;
+		angle3 += Math.PI * 2 / 60 / 60;
+		
+	if(angle3 >= 0){
+		turn = false;
+	}
 
 	requestAnimationFrame(animate3);
 	renderer.render( scene, camera );
