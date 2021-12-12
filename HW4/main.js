@@ -25,30 +25,26 @@ function init() {
   document.body.appendChild(renderer.domElement);
 
   //////////////////////////////////////////////////////////////////////////////
-  var floor = new THREE.Mesh(new THREE.PlaneGeometry(200, 200), new THREE.MeshPhongMaterial({
+  var floor = new THREE.Mesh(new THREE.PlaneGeometry(240, 240), new THREE.MeshPhongMaterial({
     color: 'black',
     side: THREE.DoubleSide
   }));
   floor.rotation.x = -Math.PI / 2;
   scene.add(floor);
  
+  candles.push(new Candle(0,0,"candle0","body0","flame0"));
+  candles.push(new Candle(40,70,"candle1","body1","flame1"));
+  candles.push(new Candle(-100,-10,"candle2","body2","flame2"));
+  candles.push(new Candle(-60,90,"candle3","body3","flame3"));
+  candles.push(new Candle(110,-30,"candle4","body4","flame4"));
+  candles.push(new Candle(20,-100,"candle5","body5","flame5"));
   
-  candles.push(new Candle(0,0,"c0","b0","f0"));
-  candles.push(new Candle(50,50,"c1","b1","f1"));
-  candles.push(new Candle(-30,-60,"c2","b2","f2"));
-  candles.push(new Candle(-50,80,"c3","b3","f3"));
-  candles.push(new Candle(70,-50,"c4","b4","f4"));
-  
-  for(let i = 0;i<5;i++){
+  for(let i = 0;i<6;i++){
 	  pickables.push(candles[i].candle);
   }
 	
   window.addEventListener('resize', onWindowResize, false);
-
   document.addEventListener('pointerdown', onDocumentMouseDown, false);
-  //document.addEventListener('pointermove', onDocumentMouseMove, false);
-
-  
 }
 
 function onWindowResize() {
@@ -58,80 +54,46 @@ function onWindowResize() {
 }
 
 function onDocumentMouseDown(event) {
-
-  // PICKING DETAILS: 
-  // convert mouse.xy = [-1,1]^2 (NDC)
-  // unproject (mouse.xy, 1) to a point on the far plane (in world coordinate)
-  // set raycaster (origin, direction)
-  // find intersection objects, (closest first) 
-  // each record as
-  // [ { distance, point, face, faceIndex, object }, ... ]
-
   event.preventDefault();
   mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
   mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
-
-  // find intersections
-  /* old style
-    var vector = new THREE.Vector3( mouse.x, mouse.y, 1 ).unproject( camera );
-	raycaster.set( camera.position, vector.sub( camera.position ).normalize() );
-    */
-  // new style
   raycaster.setFromCamera(mouse, camera);
 
-  // if recursive set to true, can go deeper into object3D hierarchy 
    var intersects = raycaster.intersectObjects( pickables, true );
-  // var intersects = raycaster.intersectObjects(pickables);
   
   if (intersects.length > 0) {
-    if (intersects[0].object.name === "b0"||intersects[0].object.name === "f0"){
+    if (intersects[0].object.name === "body0"||intersects[0].object.name === "flame0"){
     	candles[0].flameOff();
     } 
     
-    else if (intersects[0].object.name === "b1"||intersects[0].object.name === "f1"){
+    else if (intersects[0].object.name === "body1"||intersects[0].object.name === "flame1"){
     	candles[1].flameOff();
     } 
     
-  	else if (intersects[0].object.name === "b2"||intersects[0].object.name === "f2"){
+  	else if (intersects[0].object.name === "body2"||intersects[0].object.name === "flame2"){
     	candles[2].flameOff();
     } 
     
-    else if (intersects[0].object.name === "b3"||intersects[0].object.name === "f3"){
+    else if (intersects[0].object.name === "body3"||intersects[0].object.name === "flame3"){
     	candles[3].flameOff();
     } 
     
-    else if (intersects[0].object.name === "b4"||intersects[0].object.name === "f4"){
+    else if (intersects[0].object.name === "body4"||intersects[0].object.name === "flame4"){
     	candles[4].flameOff();
+    } 
+	else if (intersects[0].object.name === "body5"||intersects[0].object.name === "flame5"){
+    	candles[5].flameOff();
     } 
   }
 
 }
-
-/////////////////////////////////////////////////////
-// change cursor style
-function onDocumentMouseMove(event) {
-  event.preventDefault();
-  mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
-  mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
-
-  raycaster.setFromCamera(mouse, camera);
-
-  var intersects = raycaster.intersectObjects(pickables);
-
-  if (intersects.length > 0) {
-    document.body.style.cursor = 'pointer';
-  } else {
-    document.body.style.cursor = 'auto';
-  }
-}
-
 
 function animate() {
   requestAnimationFrame(animate);
   renderer.render(scene, camera);
   
-  for(let i = 0;i<5;i++){
-	   candles[i].candle.lookAt(camera.position.x, 0, camera.position.z);
+  for(let i = 0;i<6;i++){
+	   candles[i].candle.lookAt(camera.position.x,0,camera.position.z);
   }
   
 }
