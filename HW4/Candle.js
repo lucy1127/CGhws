@@ -26,7 +26,7 @@ class Candle{
       candle.add(flameMesh);
       flameMesh.name = flame;
       scene.add(candle);
-      flameMesh.position.y = 20;
+      flameMesh.position.y = 30;
       
 	  let light = new THREE.PointLight('white', 0.5);
       light.position.copy(flameMesh.position);
